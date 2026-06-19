@@ -1,0 +1,50 @@
+CREATE DATABASE saep_db;
+USE saep_db;
+
+CREATE TABLE usuario(
+id_usuario INT AUTO_INCREMENT PRIMARY KEY,
+nome VARCHAR(50) NOT NULL,
+senha VARCHAR(90) NOT NULL
+);
+
+CREATE TABLE categoria(
+id_categoria INT AUTO_INCREMENT PRIMARY KEY,
+nome VARCHAR(50)
+);
+
+CREATE TABLE produto(
+id_produto INT AUTO_INCREMENT PRIMARY KEY,
+categoria VARCHAR(30),
+nome VARCHAR(100),
+descricao VARCHAR(300),
+estoque_minimo INT NOT NULL DEFAULT 0,
+estoque_atual INT NOT NULL DEFAULT 0,
+codigo_interno VARCHAR(100) UNIQUE,
+id_categoria INT,
+    FOREIGN KEY (id_categoria) REFERENCES categoria(id_categoria)
+        ON UPDATE CASCADE
+        ON DELETE SET NULL
+);
+
+
+CREATE TABLE movimentacao (
+    id_movimentacao INT AUTO_INCREMENT PRIMARY KEY,
+    tipo ENUM('entrada', 'saida') NOT NULL,
+    quantidade INT NOT NULL,
+    data_hora DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    observacoes TEXT,
+    id_produto INT NOT NULL,
+    id_usuario INT NOT NULL,
+
+    FOREIGN KEY (id_produto) REFERENCES produto(id_produto)
+        ON UPDATE CASCADE
+        ON DELETE CASCADE,
+
+    FOREIGN KEY (id_usuario) REFERENCES usuario(id_usuario)
+        ON UPDATE CASCADE
+        ON DELETE RESTRICT
+);
+
+CREATE INDEX idx_produto_categoria ON produto(id_categoria);
+CREATE INDEX idx_mov_produto ON movimentacao(id_produto);
+CREATE INDEX idx_mov_usuario ON movimentacao(id_usuario);

@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cadastro de Produtos</title>
+  <style>
+    :root {
+      --bg: #eef2f7;
+      --card: #ffffff;
+      --accent: #0b74ff;
+      --muted: #667085;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    header {
+      background: #0b5ed7;
+      padding: 15px;
+      color: white;
+      display: flex;
+      justify-content: space-between;
+      width: 100%;
+      align-items: center;
+      margin-bottom: 30px;
+    }
+
+    header h1 {
+      margin: 0;
+      font-size: 20px;
+    }
+
+    body {
+      font-family: Inter, system-ui, sans-serif;
+      background: linear-gradient(180deg, var(--bg), #f7fbff);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 0px;
+      margin: 0;
+    }
+
+    main {
+      padding: 40px 20px;
+    }
+
+    .card {
+      background: var(--card);
+      width: 100%;
+      max-width: 450px;
+      padding: 28px;
+      border-radius: 12px;
+      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
+    }
+
+    h1 {
+      margin: 0 0 14px;
+      font-size: 22px;
+    }
+
+    p.lead {
+      color: var(--muted);
+      margin: 0 0 20px;
+    }
+
+    form {
+      display: grid;
+      gap: 14px;
+    }
+
+    label {
+      font-size: 14px;
+      color: #222;
+      font-weight: 500;
+    }
+
+    input,
+    select {
+      width: 100%;
+      padding: 12px 14px;
+      border: 1px solid #e5e6e8;
+      border-radius: 8px;
+      font-size: 14px;
+    }
+
+     button.logout {
+            background: #ff4d4d;
+            border: none;
+            padding: 8px 12px;
+            color: white;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        button.logout:hover {
+            background: #d63434;
+        }
+
+    textarea {
+      width: 100%;
+      padding: 12px 14px;
+      border-radius: 8px;
+      border: 1px solid #e5e6e8;
+      font-size: 14px;
+      resize: vertical;
+      min-height: 90px;
+    }
+
+    button.primary {
+      background: var(--accent);
+      color: white;
+      border: none;
+      padding: 12px;
+      font-size: 15px;
+      border-radius: 10px;
+      cursor: pointer;
+      font-weight: 600;
+    }
+
+    button.secondary {
+      background: none;
+      border: none;
+      color: var(--muted);
+      cursor: pointer;
+      font-size: 14px;
+    }
+
+    .row {
+      display: flex;
+      gap: 10px;
+    }
+
+    .footer {
+      margin-top: 12px;
+      text-align: center;
+      font-size: 13px;
+      color: var(--muted);
+    }
+  </style>
+</head>
+
+
+<header>
+    <h1>Sistema Interno</h1>
+    <button class="logout" id="btnSair">Voltar</button>
+</header>
+
+<body>
+
+  <main class="card">
+    <h1>Cadastro de Produto</h1>
+    <p class="lead">Preencha as informações do produto para adicioná-lo ao sistema.</p>
+
+    <form id="prodForm">
+
+      <div>
+        <label>Código do Produto</label>
+        <input type="text" id="codigo_interno" placeholder="Ex: PRD-001" required>
+      </div>
+
+      <div>
+        <label>Nome do Produto</label>
+        <input type="text" id="nome" required>
+      </div>
+
+      <div>
+        <label>Categoria</label>
+        <select id="categoria" required>
+          <option value="">Selecione...</option>
+          <option value="Ferramentas">Ferramentas</option>
+          <option value="Máquinas">Máquinas</option>
+          <option value="Acessórios">Acessórios</option>
+        </select>
+      </div>
+
+      <div class="row">
+        <div style="flex:1;">
+          <label>Preço (R$)</label>
+          <input type="number" id="preco" min="0" step="0.01" required>
+        </div>
+
+        <div style="flex:1;">
+          <label>Estoque Inicial</label>
+          <input type="number" id="estoque_atual" min="0" required>
+        </div>
+      </div>
+
+      <div>
+        <label>Estoque Mínimo</label>
+        <input type="number" id="estoque_minimo" min="0" required>
+      </div>
+
+      <div>
+        <label>Descrição</label>
+        <textarea id="descricao" placeholder="Detalhes do produto..."></textarea>
+      </div>
+
+      <div>
+        <label>Responsável pelo Cadastro</label>
+        <select id="responsavel" required>
+          <option value="">Carregando usuários...</option>
+        </select>
+      </div>
+
+      <div>
+        <label>Movimentação Inicial</label>
+        <select id="movimentacao" required>
+          <option value="Entrada Inicial">Entrada Inicial</option>
+          <option value="Cadastro sem estoque">Cadastro sem estoque</option>
+        </select>
+      </div>
+
+      <button class="primary" type="submit">Cadastrar Produto</button>
+      <button class="secondary" type="button" id="limpar">Limpar</button>
+    </form>
+
+    <p class="footer">Gerencie seus produtos de forma rápida e prática.</p>
+  </main>
+
+  <script>
+    const form = document.getElementById('prodForm');
+    const limpar = document.getElementById('limpar');
+    const responsavelSelect = document.getElementById('responsavel');
+
+    async function carregarUsuarios() {
+      try {
+        const resposta = await fetch('/usuarios');
+        if (!resposta.ok) {
+          throw new Error('Falha ao carregar usuários');
+        }
+
+        const usuarios = await resposta.json();
+        responsavelSelect.innerHTML = '<option value="">Selecione...</option>';
+
+        usuarios.forEach(usuario => {
+          responsavelSelect.innerHTML += `<option value="${usuario.id_usuario}">${usuario.nome}</option>`;
+        });
+      } catch (erro) {
+        responsavelSelect.innerHTML = '<option value="">Erro ao carregar usuários</option>';
+        responsavelSelect.disabled = true;
+        console.error('Erro ao carregar usuários:', erro);
+      }
+    }
+
+    // Função para mostrar mensagens 
+    function mostrarMensagem(msg, tipo) {
+      alert(msg);
+    }
+
+    carregarUsuarios();
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const dados = {
+        nome: document.getElementById('nome').value,
+        categoria: document.getElementById('categoria').value,
+        preco: document.getElementById('preco').value,
+        estoque_atual: document.getElementById('estoque_atual').value,
+        estoque_minimo: document.getElementById('estoque_minimo').value,
+        descricao: document.getElementById('descricao').value,
+        codigo_interno: document.getElementById('codigo_interno').value,
+        responsavel_id: responsavelSelect.value,
+        responsavel_nome: responsavelSelect.options[responsavelSelect.selectedIndex]?.textContent || '',
+        movimentacao_inicial: document.getElementById('movimentacao').value
+      };
+
+      try {
+        const resposta = await fetch("/CriarProdutos", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(dados)
+        });
+
+        const data = await resposta.json();
+
+        if (resposta.ok) {
+          mostrarMensagem("Produto cadastrado com sucesso!", "sucesso");
+
+          setTimeout(() => {
+            window.location.href = "/dash";
+          }, 100);
+
+        } else {
+          mostrarMensagem(data.error || "Erro desconhecido!", "erro");
+        }
+
+      } catch (erro) {
+        mostrarMensagem("Erro ao conectar ao servidor!", "erro");
+      }
+
+      console.log('Produto Cadastrado:', dados);
+      form.reset();
+    });
+
+    limpar.addEventListener('click', () => form.reset());
+
+    // Botão de sair
+    document.getElementById("btnSair").addEventListener("click", () => {
+      window.location.href = "/dash"; 
+    });
+
+  </script>
+
+</body>
+
+</html>

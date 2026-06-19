@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f4f4f4;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        .container {
+            background: white;
+            padding: 25px;
+            width: 350px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+        }
+
+        h2 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        label {
+            font-weight: bold;
+        }
+
+        input {
+            width: 100%;
+            padding: 10px;
+            margin-top: 5px;
+            margin-bottom: 15px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
+
+        button {
+            width: 100%;
+            padding: 10px;
+            background: #0b5ed7;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #094db0;
+        }
+
+        /* Mensagens */
+        .msg {
+            display: none;
+            padding: 12px;
+            margin-bottom: 15px;
+            border-radius: 5px;
+            text-align: center;
+            font-weight: bold;
+        }
+
+        .msg.sucesso {
+            background: #c8f7c5;
+            color: #2d7a2d;
+            border: 1px solid #2d7a2d;
+        }
+
+        .msg.erro {
+            background: #f7c5c5;
+            color: #7a2d2d;
+            border: 1px solid #7a2d2d;
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 14px;
+            font-size: 13px;
+            color: var(--muted);
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+        <h2>Login</h2>
+
+        <div id="mensagem" class="msg"></div>
+
+        <form id="loginForm">
+            <label for="nome">Usuário:</label>
+            <input type="text" id="nome" name="nome" required>
+
+            <label for="senha">Senha:</label>
+            <input type="password" id="senha" name="senha" required>
+
+            <button type="submit">Entrar</button>
+        </form>
+        <p class="footer">Não tem conta? <a href="/">Cadastre-se</a></p>
+    </div>
+
+    <script>
+        const form = document.getElementById("loginForm");
+        const mensagem = document.getElementById("mensagem");
+
+        form.addEventListener("submit", async (e) => {
+            e.preventDefault();
+
+            const dados = {
+                nome: form.nome.value,
+                senha: form.senha.value
+            };
+
+            try {
+                const resposta = await fetch("/login", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(dados)
+                });
+
+                const data = await resposta.json();
+
+                if (resposta.ok) {
+                    localStorage.setItem("usuario", JSON.stringify(data.usuario));
+
+                    mostrarMensagem("Login realizado com sucesso!", "sucesso");
+
+                    setTimeout(() => {
+                        window.location.href = "/dash";
+                    }, 1000);
+
+                } else {
+                    mostrarMensagem(data.error || "Erro desconhecido!", "erro");
+                }
+
+            } catch (erro) {
+                mostrarMensagem("Erro ao conectar ao servidor!", "erro");
+            }
+        });
+
+        function mostrarMensagem(texto, tipo) {
+            mensagem.textContent = texto;
+            mensagem.className = "msg " + tipo;
+            mensagem.style.display = "block";
+
+            setTimeout(() => {
+                mensagem.style.display = "none";
+            }, 4000);
+        }
+    </script>
+
+</body>
+
+</html>

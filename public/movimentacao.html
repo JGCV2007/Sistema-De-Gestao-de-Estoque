@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Movimentar Estoque</title>
+
+  <style>
+    :root{
+      --bg:#eef2f7;
+      --card:#ffffff;
+      --accent:#0b74ff;
+      --muted:#667085;
+      --danger:#ff3b3b;
+      --success:#00b37a;
+    }
+    *{box-sizing:border-box;}
+    body{
+      font-family: Inter, sans-serif;
+      background: linear-gradient(180deg, var(--bg), #f7fbff);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      min-height:100vh;
+      margin:0;
+      padding:20px;
+    }
+    .card{
+      background:var(--card);
+      width:100%;
+      max-width:480px;
+      padding:28px;
+      border-radius:12px;
+      box-shadow:0 8px 26px rgba(0,0,0,0.10);
+    }
+    h1{
+      margin:0 0 10px;
+      font-size:22px;
+    }
+    p.lead{
+      color:var(--muted);
+      margin:0 0 18px;
+    }
+    form{display:grid;gap:14px;}
+    label{font-size:14px;font-weight:500;color:#222;}
+    input, select, textarea{
+      padding:12px 14px;
+      width:100%;
+      border-radius:8px;
+      border:1px solid #dfe3e6;
+      font-size:14px;
+    }
+    button{
+      padding:12px;
+      border:none;
+      width:100%;
+      cursor:pointer;
+      font-weight:600;
+      font-size:16px;
+      border-radius:10px;
+      color:white;
+    }
+    .btn-primary{background:var(--accent);}
+    .alert{
+      padding:12px;
+      border-radius:8px;
+      color:white;
+      margin-top:10px;
+      display:none;
+    }
+    .success{background:var(--success);}
+    .error{background:var(--danger);}
+    .history{
+      margin-top:22px;
+      background:#f8fbff;
+      border:1px solid #e6eef8;
+      border-radius:12px;
+      padding:18px;
+    }
+    .history h2{
+      margin:0 0 12px;
+      font-size:18px;
+    }
+    .history table{
+      width:100%;
+      border-collapse:collapse;
+      font-size:13px;
+    }
+    .history th,
+    .history td{
+      padding:10px 8px;
+      border-bottom:1px solid #dde6f0;
+      text-align:left;
+      vertical-align:top;
+    }
+    .history th{
+      color:#344054;
+      font-weight:600;
+    }
+    .empty-state{
+      color:var(--muted);
+      font-size:14px;
+      padding:8px 0 2px;
+    }
+  </style>
+</head>
+
+<body>
+
+  <main class="card">
+    <h1>Movimentar Estoque</h1>
+    <p class="lead">Registre entradas e saídas de produtos abaixo.</p>
+
+    <form id="movForm">
+
+      <div>
+        <label>Produto</label>
+        <select id="produto" required>
+          <option value="">Carregando...</option>
+        </select>
+      </div>
+
+      <div>
+        <label>Usuário Responsável</label>
+        <select id="usuario" required>
+          <option value="">Carregando...</option>
+        </select>
+      </div>
+
+      <div>
+        <label>Tipo de Movimentação</label>
+        <select id="tipo" required>
+          <option value="">Selecione...</option>
+          <option value="entrada">Entrada</option>
+          <option value="saida">Saída</option>
+        </select>
+      </div>
+
+      <div>
+        <label>Quantidade</label>
+        <input type="number" id="quantidade" min="1" required>
+      </div>
+
+      <div>
+        <label>Observações</label>
+        <textarea id="obs" placeholder="Motivo, detalhes, lote, etc."></textarea>
+      </div>
+
+      <div>
+        <label>Data</label>
+        <input type="text" id="data" readonly>
+      </div>
+
+      <button class="btn-primary" type="submit">Registrar</button>
+    </form>
+
+    <div id="alert" class="alert"></div>
+
+    <section class="history">
+      <h2>Histórico de movimentações</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Data</th>
+            <th>Produto</th>
+            <th>Tipo</th>
+            <th>Qtd.</th>
+            <th>Responsável</th>
+            <th>Observações</th>
+          </tr>
+        </thead>
+        <tbody id="historicoMovimentacoes">
+          <tr>
+            <td colspan="6" class="empty-state">Carregando histórico...</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+  </main>
+
+  <script>
+    const API = "";
+
+    const produtoSelect = document.getElementById("produto");
+    const usuarioSelect = document.getElementById("usuario");
+    const dataField = document.getElementById("data");
+    const alertBox = document.getElementById("alert");
+    const historicoMovimentacoes = document.getElementById("historicoMovimentacoes");
+
+    // Data atual automática
+    dataField.value = new Date().toLocaleString("pt-BR");
+
+    function formatarData(dataISO) {
+      if (!dataISO) {
+        return "-";
+      }
+
+      return new Intl.DateTimeFormat("pt-BR", {
+        dateStyle: "short",
+        timeStyle: "short"
+      }).format(new Date(dataISO));
+    }
+
+    async function carregarHistorico() {
+      try {
+        const resposta = await fetch(`${API}/movimentacoes`);
+        const movimentacoes = await resposta.json();
+
+        if (!Array.isArray(movimentacoes) || movimentacoes.length === 0) {
+          historicoMovimentacoes.innerHTML = `
+            <tr>
+              <td colspan="6" class="empty-state">Nenhuma movimentação registrada ainda.</td>
+            </tr>
+          `;
+          return;
+        }
+
+        historicoMovimentacoes.innerHTML = movimentacoes.map(mov => `
+          <tr>
+            <td>${formatarData(mov.data_operacao)}</td>
+            <td>${mov.produto || "-"}</td>
+            <td>${mov.tipo}</td>
+            <td>${mov.quantidade}</td>
+            <td>${mov.responsavel || "-"}</td>
+            <td>${mov.observacoes || "-"}</td>
+          </tr>
+        `).join("");
+      } catch (erro) {
+        historicoMovimentacoes.innerHTML = `
+          <tr>
+            <td colspan="6" class="empty-state">Falha ao carregar histórico.</td>
+          </tr>
+        `;
+        console.log("Erro ao carregar histórico:", erro);
+      }
+    }
+
+    // Carregar produtos
+    fetch(`${API}/produtos`)
+      .then(res => res.json())
+      .then(produtos => {
+        produtoSelect.innerHTML = '<option value="">Selecione...</option>';
+        produtos.forEach(p => {
+          produtoSelect.innerHTML += `<option value="${p.id_produto}">${p.nome}</option>`;
+        });
+      });
+
+    // Carregar usuários
+    fetch(`${API}/usuarios`)
+      .then(res => res.json())
+      .then(usuarios => {
+        usuarioSelect.innerHTML = '<option value="">Selecione...</option>';
+        usuarios.forEach(u => {
+          usuarioSelect.innerHTML += `<option value="${u.id_usuario}">${u.nome}</option>`;
+        });
+      });
+
+    // Função de alerta
+    function showAlert(msg, type){
+      alertBox.textContent = msg;
+      alertBox.className = "alert " + type;
+      alertBox.style.display = "block";
+      setTimeout(()=> alertBox.style.display = "none", 3000);
+    }
+
+    // Envio do formulário
+    document.getElementById("movForm").addEventListener("submit", e => {
+      e.preventDefault();
+
+      const dados = {
+        tipo: document.getElementById("tipo").value,
+        quantidade: document.getElementById("quantidade").value,
+        observacoes: document.getElementById("obs").value,
+        id_produto: produtoSelect.value,
+        id_usuario: usuarioSelect.value
+      };
+
+      fetch(`${API}/movimentacoes`, {
+        method:"POST",
+        headers:{ "Content-Type":"application/json" },
+        body: JSON.stringify(dados)
+      })
+      .then(res => res.json())
+      .then(resp => {
+        if(resp.erro){
+          showAlert("Erro: " + resp.erro, "error");
+        } else {
+          showAlert("Movimentação registrada!", "success");
+          document.getElementById("movForm").reset();
+          dataField.value = new Date().toLocaleString("pt-BR");
+          carregarHistorico();
+          setTimeout(() => {
+            window.location.href = "/gerenciador";
+          }, 2000);
+        }
+      })
+      .catch(() => showAlert("Falha na comunicação com a API!", "error"));
+    });
+
+    carregarHistorico();
+
+  </script>
+
+</body>
+</html>

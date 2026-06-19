@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Home</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #eef2f7;
+            margin: 0;
+        }
+
+        header {
+            background: #0b5ed7;
+            padding: 15px;
+            color: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: 20px;
+        }
+
+        nav {
+            background: #0b5ed7;
+            padding: 15px;
+        }
+
+        nav ul {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            gap: 20px;
+        }
+
+        nav ul li a {
+            color: white;
+            text-decoration: none;
+            font-size: 18px;
+        }
+
+        nav ul li a:hover {
+            text-decoration: underline;
+        }
+
+        button.logout {
+            background: #ff4d4d;
+            border: none;
+            padding: 8px 12px;
+            color: white;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        button.logout:hover {
+            background: #d63434;
+        }
+
+        main {
+            max-width: 600px;
+            margin: 40px auto;
+            background: white;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.15);
+            text-align: center;
+        }
+
+        h2 {
+            font-size: 22px;
+        }
+
+        p {
+            color: #333;
+            font-size: 15px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <header>
+        <h1>Sistema Interno</h1>
+        <button class="logout" id="btnSair">Sair</button>
+    </header>
+
+     <nav>
+            <ul>
+                <li><a href="/cadastro">Produtos</a></li>
+                <li><a href="/gerenciador">Gerenciador</a></li>
+            </ul>
+        </nav>
+
+    <main>
+        <h2><span id="usuarioNome"></span>!</h2>
+        <p>Você está logado no sistema.</p>
+    </main>
+
+    <script>
+        
+        const usuario = JSON.parse(localStorage.getItem("usuario"));
+ 
+       /*  if (!usuario) {
+             window.location.href = "/login";
+         }*/
+
+        // Exibe o nome do usuário
+        document.getElementById("usuarioNome").textContent = `Bem-vindo, ${usuario}`;
+
+        // Botão de sair
+        document.getElementById("btnSair").addEventListener("click", () => {
+            localStorage.removeItem("usuarioLogado"); // remove o login
+            window.location.href = "/login"; // volta para login
+        });
+    </script>
+
+</body>
+
+</html>

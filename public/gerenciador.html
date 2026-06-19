@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Listagem de Produtos</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f5f5f5;
+            padding: 0px;
+            margin: 0;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+        }
+
+        th,
+        td {
+            padding: 12px;
+            border-bottom: 1px solid #ddd;
+            text-align: center;
+        }
+
+        th {
+            background: #333;
+            color: white;
+        }
+
+        tr:nth-child(even) {
+            background-color: #eee;
+        }
+
+        .alerta {
+            background-color: #ffcccc;
+            color: red;
+            font-weight: bold;
+            padding: 6px;
+            border-radius: 4px;
+        }
+
+        .ok {
+            background-color: #ccffcc;
+            color: green;
+            font-weight: bold;
+            padding: 6px;
+            border-radius: 4px;
+        }
+
+        .btn {
+            padding: 6px 10px;
+            border: none;
+            cursor: pointer;
+            border-radius: 4px;
+            color: white;
+        }
+
+        .btn-editar {
+            background: #007bff;
+        }
+
+        .btn-excluir {
+            background: #d9534f;
+        }
+
+        #novoProduto {
+            display: block;
+            width: 200px;
+            margin: 20px auto;
+            padding: 10px;
+            text-align: center;
+            background: #28a745;
+            color: white;
+            border-radius: 6px;
+            text-decoration: none;
+            font-size: 16px;
+        }
+
+        
+        nav {
+            background: #0b5ed7;
+            padding: 15px;
+            display: flex;
+            align-items: center;
+             justify-content: space-between;
+        }
+
+        nav ul {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            gap: 20px;
+        }
+
+        nav ul li a {
+            color: white;
+            text-decoration: none;
+            font-size: 18px;
+        }
+
+        nav ul li a:hover {
+            text-decoration: underline;
+        }
+
+
+         button.logout {
+            background: #ff4d4d;
+            border: none;
+            padding: 8px 12px;
+            color: white;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        button.logout:hover {
+            background: #d63434;
+        }
+
+
+        nav {
+            margin: 0px;
+            background: #0b5ed7;
+            padding: 15px;
+        }
+
+        nav ul {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            gap: 20px;
+        }
+
+        nav ul li a {
+            color: white;
+            text-decoration: none;
+            font-size: 18px;
+        }
+
+        nav ul li a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<nav>
+    <ul>
+        <li><a href="/dash">Home</a></li>
+        <li><a href="/cadastro">Produtos</a></li>
+    </ul>
+    <button class="logout" id="btnSair">Voltar</button>
+</nav>
+
+<body>
+
+
+
+    <h1>Listagem de Produtos</h1>
+
+    <a id="novoProduto" href="/cadastro">+ Novo Produto</a>
+
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Categoria</th>
+                <th>Nome</th>
+                <th>Estoque Atual</th>
+                <th>Estoque Mínimo</th>
+                <th>Situação</th>
+                <th>Ações</th>
+            </tr>
+        </thead>
+
+        <tbody id="tabelaProdutos">
+            <!-- Os produtos aparecerão aqui -->
+        </tbody>
+    </table>
+
+    <script>
+        async function carregarProdutos() {
+            try {
+                const resposta = await fetch("/ListarProdutos");
+                const produtos = await resposta.json();
+
+                const tabela = document.getElementById("tabelaProdutos");
+                tabela.innerHTML = "";
+
+                produtos.forEach(p => {
+                    const situacao = p.estoque_atual < p.estoque_minimo
+                        ? `<span class="alerta">Abaixo do mínimo</span>`
+                        : `<span class="ok">OK</span>`;
+
+                    const tr = `
+                        <tr>
+                            <td>${p.id_produto}</td>
+                            <td>${p.categoria_nome || "Sem categoria"}</td>
+                            <td>${p.nome}</td>
+                            <td>${p.estoque_atual}</td>
+                            <td>${p.estoque_minimo}</td>
+                            <td>${situacao}</td>
+                            <td>
+                                <button class="btn btn-editar" onclick="editar(${p.id_produto})">Editar</button>
+                                <button class="btn btn-excluir" onclick="excluir(${p.id_produto})">Excluir</button>
+                            </td>
+                        </tr>
+                    `;
+
+                    tabela.innerHTML += tr;
+                });
+
+            } catch (erro) {
+                console.log("Erro ao carregar produtos:", erro);
+            }
+        }
+
+        function editar(id) {
+            window.location.href = "/mover";
+        }
+
+        async function excluir(id) {
+            if (!confirm("Deseja realmente excluir?")) return;
+
+            await fetch(`/DelProdutos/${id}`, {
+                method: "DELETE"
+            });
+
+            carregarProdutos();
+        }
+
+        // Botão de sair
+        document.getElementById("btnSair").addEventListener("click", () => {
+            window.location.href = "/dash";
+        });
+
+        carregarProdutos();
+
+    </script>
+
+</body>
+
+</html>
